@@ -1,24 +1,100 @@
-# Hikari Studio — Node.js + SQLite storefront
+# ✦ Hikari Studio
 
-## Run
-    npm install
-    ADMIN_EMAIL=you@mail.com ADMIN_PASSWORD='strong-pass' SESSION_SECRET='long-random' npm start
-Store: http://localhost:3000 — Owner dashboard: http://localhost:3000/admin (not linked from the public site).
-ADMIN_* are used once, only to create the first owner account when the database has none.
+متجر إلكتروني للحِرف اليدوية بطابع فانتازي بنفسجي وذهبي. الواجهة تدعم العربية RTL والفرنسية والإنجليزية، مع لوحة مالك لإدارة المنتجات والطلبات والتوصيل والتقييمات.
 
-## Structure
-- `server.js` — Express API (public + owner), auth, uploads, order validation (server recomputes prices/fees and checks stock)
-- `db/schema.sql` — SQLite schema, applied automatically. Seeds only: 3 categories, 58 wilayas (no fees), empty social links
-- `public/index.html`, `css/style.css`, `js/app.js` — storefront (Arabic RTL / French / English)
-- `public/admin.html` — owner dashboard
-- `public/assets/` — logo, mascot, illustrative collection images
-- `uploads/products` public product photos · `uploads/custom` PRIVATE customer references (served to the owner only)
+**التقنيات المستخدمة:** HTML5، CSS3، JavaScript، Node.js، Express، SQLite وSQL. لا يحتاج المشروع إلى إطار واجهات إضافي كي يعمل.
 
-## First steps for the owner
-1. Admin > Delivery: set home/office fees per wilaya (empty = not offered; checkout blocks it).
-2. Admin > Settings: add the real social URLs (empty ones stay hidden).
-3. Admin > Products: add real products and photos, tick "published".
-Nothing is pre-invented: the storefront shows branded empty states until real data is added.
+## تشغيل المشروع محليًا (مهم لظهور الموقع)
 
-## Security
-Scrypt password hash, HMAC-signed HttpOnly SameSite=Strict session cookie, X-Hikari header required on owner writes, login rate limit, upload type/size limits, output escaping. Use HTTPS in production.
+**لا تفتح `public/index.html` مباشرةً من مدير الملفات، ولا تعتمد على GitHub Pages لتشغيل المشروع كاملًا.** الصفحة تستدعي API وقاعدة SQLite، لذلك يجب تشغيل خادم Node.js.
+
+المتطلبات: Node.js 20 أو أحدث وnpm. افتح الطرفية داخل مجلد المشروع الذي يحتوي على `package.json` و`server.js`، وليس داخل `public/` أو `hikari-studio/` إذا كان لديك مجلد متداخل.
+
+```bash
+npm install
+```
+
+أنشئ ملف `.env` اعتمادًا على `.env.example` ثم أدخل بريد المالك وكلمة مرور قوية ومفتاح جلسة عشوائيًا. يقرأ الخادم هذا الملف تلقائيًا. لا ترفع ملف `.env` إلى GitHub.
+
+```env
+PORT=3000
+SESSION_SECRET=replace-with-a-long-random-secret
+ADMIN_EMAIL=you@example.com
+ADMIN_PASSWORD=choose-a-strong-password
+NODE_ENV=development
+```
+
+بعد ذلك شغّل:
+
+```bash
+npm start
+```
+
+اترك نافذة الطرفية مفتوحة، ثم افتح `http://localhost:3000` في المتصفح. إذا ظهرت صفحة فارغة، افتح أدوات المطوّر (F12) وتحقق من أخطاء Network/Console، وتأكد أن الطرفية تعرض `Hikari Studio → http://localhost:3000`.
+
+- المتجر: http://localhost:3000
+- لوحة المالك: http://localhost:3000/admin
+
+على Windows PowerShell، أنشئ ملف `.env` كما في المثال بدل استخدام صيغة متغيرات البيئة الخاصة بـ Linux/macOS. الحساب الإداري الأول يُنشأ من `ADMIN_EMAIL` و`ADMIN_PASSWORD` مرة واحدة فقط إذا لم يوجد حساب في قاعدة البيانات.
+
+## ما الذي يتضمنه المشروع؟
+
+- **واجهة المتجر:** الرئيسية، المجموعات، تفاصيل المنتج، البحث والفرز، سلة المشتريات، إتمام الطلب، الطلبات المخصصة، نبذة عن الاستوديو والتقييمات.
+- **ثلاث لغات:** العربية والفرنسية والإنجليزية مع اتجاه RTL/LTR.
+- **لوحة الإدارة:** تسجيل دخول المالك، إحصاءات، إدارة المنتجات وصورها وترتيبها، الطلبات وحالاتها، الطلبات المخصصة ومرفقاتها الخاصة، مراجعة التقييمات، رسوم التوصيل لكل ولاية وروابط التواصل.
+- **الخلفية:** REST API باستخدام Express، وتخزين SQLite، والتحقق من المخزون والأسعار ورسوم التوصيل من جهة الخادم قبل حفظ الطلب.
+- **الصور:** صور المنتجات عامة في `uploads/products`، أما الصور المرجعية للطلبات المخصصة فتبقى خاصة ولا تُقدّم إلا للمالك المسجّل دخوله.
+- **هوية بصرية:** الأصول الموجودة في `public/assets` تشمل الشعار والتميمة وصور الكتب والمجموعات.
+
+## الخطوات الأولى بعد التشغيل
+
+1. افتح `/admin` وسجّل الدخول.
+2. من قسم التوصيل، حدّد رسوم المنزل والمكتب لكل ولاية. ترك الرسوم فارغة يعني أن هذه الطريقة غير متاحة، وسيمنع المتجر إتمام الطلب بها.
+3. أضف روابط التواصل الحقيقية من الإعدادات.
+4. أضف منتجاتك وصورها، وحدّد المخزون والتوفر، ثم انشر المنتجات.
+5. نفّذ طلبًا تجريبيًا محليًا وتأكد من ظهوره في لوحة الإدارة.
+
+لا توجد منتجات أو أسعار أو رسوم توصيل افتراضية مخترعة؛ أضف بياناتك الحقيقية من لوحة المالك.
+
+## الاختبارات
+
+```bash
+npm test
+```
+
+يفحص الاختبار صياغة JavaScript ويطبّق مخطط SQL على قاعدة مؤقتة ويتحقق من بيانات التصنيف والولايات الأساسية. يعمل GitHub Actions تلقائيًا عند رفع تغييرات أو فتح Pull Request.
+
+## GitHub والنشر
+
+GitHub يقبل ملفات HTML وCSS وJavaScript وNode.js وSQL عاديًا؛ لا يلزم تحويلها إلى لغة أخرى. لكن **GitHub Pages يستضيف المواقع الثابتة فقط** ولا يشغّل Express أو SQLite. لذلك يجب نشر المشروع كاملًا على خدمة تدعم Node.js مع تخزين دائم للملفات، أو استضافة الواجهة الثابتة منفصلة عن API.
+
+عند النشر:
+
+- استخدم `npm ci` ثم `npm start`.
+- اضبط `SESSION_SECRET` و`ADMIN_EMAIL` و`ADMIN_PASSWORD` من إعدادات الأسرار/متغيرات البيئة لدى مزوّد الاستضافة، ولا تحفظ الأسرار في Git.
+- فعّل HTTPS واضبط `NODE_ENV=production`.
+- اربط قرصًا دائمًا لملف قاعدة البيانات `db/hikari.sqlite` ومجلد `uploads`؛ وإلا قد تُفقد قاعدة البيانات والصور عند إعادة النشر أو إعادة التشغيل.
+- خذ نسخًا احتياطية من قاعدة البيانات والصور بصورة منتظمة.
+
+## هيكل المشروع
+
+```text
+hikari-studio/
+├── server.js                 # Express API، الجلسات، التحقق والرفع
+├── db/schema.sql             # جداول SQLite والبيانات الأساسية
+├── public/
+│   ├── index.html            # واجهة المتجر
+│   ├── admin.html            # لوحة المالك
+│   ├── css/style.css         # التصميم المتجاوب
+│   ├── js/app.js             # التفاعل والترجمة والسلة
+│   └── assets/               # الشعار والرسوم والصور
+├── uploads/
+│   ├── products/             # صور المنتجات العامة
+│   └── custom/               # مراجع العملاء الخاصة
+├── scripts/check.js          # فحوصات المشروع
+└── .env.example              # قالب الإعدادات دون أسرار
+```
+
+## ملاحظات أمنية
+
+يستخدم المشروع تجزئة كلمات المرور عبر `scrypt`، وملف تعريف ارتباط جلسة `HttpOnly`، وتوقيع HMAC، ومحددًا لمحاولات تسجيل الدخول، وحدودًا لحجم الملفات وأنواعها، والتحقق من الأسعار والمخزون في الخادم. قبل إطلاق تجاري فعلي، راجع سياسة الخصوصية وشروط البيع والتوصيل، واختبر النسخ الاحتياطي والاستعادة وإعدادات الاستضافة.
