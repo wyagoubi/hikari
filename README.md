@@ -98,3 +98,8 @@ hikari-studio/
 ## ملاحظات أمنية
 
 يستخدم المشروع تجزئة كلمات المرور عبر `scrypt`، وملف تعريف ارتباط جلسة `HttpOnly`، وتوقيع HMAC، ومحددًا لمحاولات تسجيل الدخول، وحدودًا لحجم الملفات وأنواعها، والتحقق من الأسعار والمخزون في الخادم. قبل إطلاق تجاري فعلي، راجع سياسة الخصوصية وشروط البيع والتوصيل، واختبر النسخ الاحتياطي والاستعادة وإعدادات الاستضافة.
+
+
+## GitHub Pages note
+
+Static asset paths in `public/index.html` and `public/js/app.js` are relative so the interface can load under a repository subpath such as `/hikari/`. The application still requires the Node.js/Express API for products, checkout, reviews, uploads, and admin operations; GitHub Pages cannot run this backend. Deploy the full project to a Node.js host for production.
